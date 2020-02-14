@@ -223,7 +223,7 @@ PBS %>%
 # Lab Session 11
 
 hh_budget %>%
-  model(drift = RW(Wealth ~ drift())) %>%
+  model(drift = RW(Wealth ~ drift()))
   forecast(h = "5 years") %>%
   autoplot(hh_budget)
 
@@ -232,8 +232,10 @@ aus_takeaway <- aus_retail %>%
   summarise(Turnover = sum(Turnover))
 
 aus_takeaway %>%
-  model(snaive = SNAIVE(Turnover)) %>%
-  forecast(h = "3 years") %>%
+  model(
+    nn_bc = NNETAR(box_cox(Turnover, 0.05)),
+    nn = NNETAR(Turnover)) %>% 
+  forecast(h = "5 years") %>%
   autoplot(aus_takeaway)
 
 # Lab Session 12
@@ -403,7 +405,9 @@ vic_elec_daily <- vic_elec %>%
   )
 
 elec_model <- vic_elec_daily %>%
-  model(fit = ARIMA(Demand ~ fourier("year", K = 10) + Temperature + I(pmax(Temperature-20,0)) + (Day_Type=="Weekday")))
+  model(fit = ARIMA(Demand ~ fourier("year", K = 10) + 
+                      Temperature + I(pmax(Temperature-20,0)) + 
+                      (Day_Type=="Weekday")))
 report(elec_model)
 
 augment(elec_model) %>%
